@@ -1,4 +1,5 @@
 package xsql
+
 /*
 
 数据库调用方法说明
@@ -23,38 +24,38 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/NiuStar/log"
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"
-	"time"
-	"github.com/NiuStar/log"
-	"sync"
 	"strings"
+	"sync"
+	"time"
 )
 
-const LifeTime int64  =  60 * 60
+const LifeTime int64 = 60 * 60
 
 type XSql struct {
-	db         *sql.DB
-	name string
-	password string
-	ip string
-	port string
-	sqlName string
-	mLock *sync.RWMutex
+	db        *sql.DB
+	name      string
+	password  string
+	ip        string
+	port      string
+	sqlName   string
+	mLock     *sync.RWMutex
 	time_last int64
 }
 
 type XSqlOrder struct {
-	xs         *XSql
-	reqString  string
+	xs        *XSql
+	reqString string
 	//selectKeys map[string]string
-	tableName  []string
-	colType map[string]string
-	ch uint8
+	tableName []string
+	colType   map[string]string
+	ch        uint8
 }
 
 func CreateInstance(xs *XSql) *XSqlOrder {
-	o := new (XSqlOrder)
+	o := new(XSqlOrder)
 	o.xs = xs
 	//o.selectKeys = make(map[string]string)
 	o.colType = make(map[string]string)
@@ -91,7 +92,7 @@ func Substr(str string, start, length int) string {
 }
 
 func InitSql(name string, password string, ip string, port string, sqlName string) *XSql {
-	db := createDB(name,password,ip,port,sqlName)
+	db := createDB(name, password, ip, port, sqlName)
 	fmt.Println("初始化数据库成功")
 	s := new(XSql)
 	s.mLock = new(sync.RWMutex)
@@ -120,7 +121,6 @@ func createDB(name string, password string, ip string, port string, sqlName stri
 
 	checkErr(err)
 
-
 	return db
 }
 
@@ -141,7 +141,7 @@ func timer(s *XSqlOrder) {
 		}
 	}*/
 	//fmt.Println("timer")
-	for i := 0 ; i < 1000 ; i ++ {
+	for i := 0; i < 1000; i++ {
 		//fmt.Println("timer:" , i)
 		//s.createNewDB()
 		if s.ch == 1 {
@@ -151,7 +151,7 @@ func timer(s *XSqlOrder) {
 	}
 	fmt.Println("重新生成:")
 	s.xs.db.Close()
-	db := createDB(s.xs.name,s.xs.password,s.xs.ip,s.xs.port,s.xs.sqlName)
+	db := createDB(s.xs.name, s.xs.password, s.xs.ip, s.xs.port, s.xs.sqlName)
 	s.xs.db = db
 	s.xs.time_last = time.Now().Unix()
 	fmt.Println("重新生成:OK")
@@ -182,7 +182,7 @@ func (s *XSqlOrder) Select(name string, keys ...string) { //第一个参数为�
 
 	s.reqString = reqString
 	//s.selectKeys = selectKeys
-	s.tableName = append(s.tableName,name)
+	s.tableName = append(s.tableName, name)
 	fmt.Println(reqString)
 }
 func (s *XSqlOrder) Insert(values map[string]interface{}, name string) {
@@ -194,7 +194,7 @@ func (s *XSqlOrder) Insert(values map[string]interface{}, name string) {
 	//sorted_keys := make([]string, 0)
 	var index = 0
 	for key, value := range values {
-		index ++
+		index++
 		reqString += key
 		if index != len(values) {
 			reqString += ","
@@ -275,7 +275,7 @@ func (s *XSqlOrder) Insert_(values map[string]interface{}, name string) {
 	//sorted_keys := make([]string, 0)
 	var index = 0
 	for key, value := range values {
-		index ++
+		index++
 		reqString += key
 		if index != len(values) {
 			reqString += ","
@@ -347,7 +347,6 @@ func (s *XSqlOrder) Insert_(values map[string]interface{}, name string) {
 
 }
 
-
 func (s *XSqlOrder) MulitInsert(list []map[string]interface{}, name string) {
 
 	reqString := "INSERT INTO " + name + " ("
@@ -357,9 +356,9 @@ func (s *XSqlOrder) MulitInsert(list []map[string]interface{}, name string) {
 	//sorted_keys := make([]string, 0)
 	var key_list []string
 	if len(list) > 0 {
-		var index = 0;
+		var index = 0
 		for key, _ := range list[0] {
-			key_list = append(key_list,key)
+			key_list = append(key_list, key)
 			index++
 			reqString += key
 			if index != len(list[0]) {
@@ -368,12 +367,12 @@ func (s *XSqlOrder) MulitInsert(list []map[string]interface{}, name string) {
 		}
 	}
 
-	for index_k , values := range list {
+	for index_k, values := range list {
 		index_k++
 		//var index = 0
-		for index,key_value := range key_list {
+		for index, key_value := range key_list {
 			value := values[key_value]
-			index ++
+			index++
 			switch value.(type) {
 			case int:
 				{
@@ -432,15 +431,15 @@ func (s *XSqlOrder) MulitInsert(list []map[string]interface{}, name string) {
 			}
 		}
 
-		if index_k != len(list)  {
+		if index_k != len(list) {
 			valueString += "),( "
 		}
 	}
-	fmt.Println("reqString: ",reqString)
-	fmt.Println("valueString: ",valueString)
+	fmt.Println("reqString: ", reqString)
+	fmt.Println("valueString: ", valueString)
 
 	reqString += ") VALUES ( " + valueString
-	fmt.Println("reqString: ",reqString)
+	fmt.Println("reqString: ", reqString)
 	//s.reqString = Substr(reqString, 0, len(reqString)-1)
 	s.reqString = reqString + ")"
 
@@ -573,8 +572,6 @@ func (s *XSqlOrder) Update_(values map[string]interface{}, name string) {
 
 }
 
-
-
 func (s *XSqlOrder) Delete(name string) {
 	s.reqString = "DELETE FROM " + name
 	//s.selectKeys = make(map[string]string)
@@ -583,7 +580,7 @@ func (s *XSqlOrder) Where(values map[string]interface{}) {
 	reqString := " where "
 	var index = 0
 	for key, value := range values {
-		index ++
+		index++
 		switch value.(type) {
 		case int:
 			{
@@ -632,7 +629,7 @@ func (s *XSqlOrder) Count(name string) {
 	s.colType["count"] = "int"
 }
 
-func (s *XSqlOrder) CountMore(name string,tag string) {
+func (s *XSqlOrder) CountMore(name string, tag string) {
 	s.colType = make(map[string]string)
 	s.reqString = "select count(" + tag + ") as count from " + name
 	s.colType["count"] = "int"
@@ -678,18 +675,17 @@ func (s *XSqlOrder) GetSQLString() string {
 	return s.reqString
 }
 
-func (s *XSqlOrder)createNewDB(){
+func (s *XSqlOrder) createNewDB() {
 	s.xs.mLock.RLock()
 	tm := time.Now().Unix()
-	if tm - s.xs.time_last > LifeTime {
+	if tm-s.xs.time_last > LifeTime {
 		s.xs.db.Close()
-		db := createDB(s.xs.name,s.xs.password,s.xs.ip,s.xs.port,s.xs.sqlName)
+		db := createDB(s.xs.name, s.xs.password, s.xs.ip, s.xs.port, s.xs.sqlName)
 		s.xs.db = db
 	}
 	s.xs.time_last = time.Now().Unix()
 	s.xs.mLock.RUnlock()
 }
-
 
 func (s *XSqlOrder) ExecuteNoResult() {
 	//SQL
@@ -703,12 +699,11 @@ func (s *XSqlOrder) ExecuteNoResult() {
 	rows.Close()
 }
 
-
 func (s *XSqlOrder) Execute2() (results []map[string]interface{}) { //SQL
 
-	defer func () {
+	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println("数据库执行错误：",err)
+			fmt.Println("数据库执行错误：", err)
 		}
 
 	}()
@@ -725,10 +720,10 @@ func (s *XSqlOrder) Execute2() (results []map[string]interface{}) { //SQL
 	s.xs.mLock.RUnlock()
 	s.ch = 1
 	if err != nil {
-		fmt.Println("error: ",err)
+		fmt.Println("error: ", err)
 		s.xs.mLock.RLock()
 		s.xs.db.Close()
-		db := createDB(s.xs.name,s.xs.password,s.xs.ip,s.xs.port,s.xs.sqlName)
+		db := createDB(s.xs.name, s.xs.password, s.xs.ip, s.xs.port, s.xs.sqlName)
 		s.xs.db = db
 		s.xs.time_last = time.Now().Unix()
 
@@ -830,27 +825,27 @@ func byte2String(value []byte) string {
 	return string(value)
 }
 
-func (s *XSqlOrder)SetTableName(name ...string) map[string]string {
+func (s *XSqlOrder) SetTableName(name ...string) map[string]string {
 	s.tableName = name
 	var sqlString string = "SELECT column_name,data_type FROM INFORMATION_SCHEMA.columns WHERE TABLE_NAME='"
 	for i, value := range name {
 		sqlString += value
-		if i != len(name) - 1 {
-			sqlString +=  "' OR TABLE_NAME='"
+		if i != len(name)-1 {
+			sqlString += "' OR TABLE_NAME='"
 		}
 	}
-	sqlString +=  "' "
+	sqlString += "' "
 	s.ch = 0
 	s.xs.mLock.RLock()
-	rows,err := s.xs.db.Query(sqlString)
+	rows, err := s.xs.db.Query(sqlString)
 
 	s.xs.mLock.RUnlock()
 	s.ch = 1
 	if err != nil {
-		fmt.Println("error: ",err)
+		fmt.Println("error: ", err)
 		s.xs.mLock.RLock()
 		s.xs.db.Close()
-		db := createDB(s.xs.name,s.xs.password,s.xs.ip,s.xs.port,s.xs.sqlName)
+		db := createDB(s.xs.name, s.xs.password, s.xs.ip, s.xs.port, s.xs.sqlName)
 		s.xs.db = db
 		s.xs.time_last = time.Now().Unix()
 
@@ -864,16 +859,16 @@ func (s *XSqlOrder)SetTableName(name ...string) map[string]string {
 	for rows.Next() {
 		var column_name string
 		var data_type string
-		err = rows.Scan(&column_name,&data_type)
+		err = rows.Scan(&column_name, &data_type)
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
 
-		if strings.Contains(data_type,"int")  {
+		if strings.Contains(data_type, "int") {
 			s.colType[column_name] = "int"
-		} else if strings.Contains(data_type,"float")  {
+		} else if strings.Contains(data_type, "float") {
 			s.colType[column_name] = "float"
-		} else if strings.Contains(data_type,"bool")  {
+		} else if strings.Contains(data_type, "bool") {
 			s.colType[column_name] = "bool"
 		} else {
 			s.colType[column_name] = "string"
@@ -883,10 +878,11 @@ func (s *XSqlOrder)SetTableName(name ...string) map[string]string {
 	//s.colType = t
 	return s.colType
 }
+
 //int  float string
 func (s *XSqlOrder) SetTableColType(data_type map[string]string) {
 	//SQL
-	for key,value := range data_type {
+	for key, value := range data_type {
 		s.colType[strings.ToLower(key)] = strings.ToLower(value)
 	}
 }
@@ -904,9 +900,9 @@ func (s *XSqlOrder) SetTableColTypeString(data_types ...string) {
 
 func (s *XSqlOrder) Execute() (results []map[string]interface{}) { //SQL
 
-	defer func () {
+	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println("数据库执行错误：",err)
+			fmt.Println("数据库执行错误：", err)
 		}
 	}()
 
@@ -919,14 +915,13 @@ func (s *XSqlOrder) Execute() (results []map[string]interface{}) { //SQL
 
 	rows, err := s.xs.db.Query(s.reqString)
 
-
 	s.xs.mLock.RUnlock()
 	s.ch = 1
 	if err != nil {
-		fmt.Println("error: ",err)
+		fmt.Println("error: ", err)
 		s.xs.mLock.RLock()
 		s.xs.db.Close()
-		db := createDB(s.xs.name,s.xs.password,s.xs.ip,s.xs.port,s.xs.sqlName)
+		db := createDB(s.xs.name, s.xs.password, s.xs.ip, s.xs.port, s.xs.sqlName)
 		s.xs.db = db
 		s.xs.time_last = time.Now().Unix()
 
@@ -1006,12 +1001,12 @@ func (s *XSqlOrder) Execute() (results []map[string]interface{}) { //SQL
 
 	}
 
-	fmt.Println("results:",results)
+	fmt.Println("results:", results)
 	return results
 }
 
 func getInitValue(pval []byte) interface{} {
-	result_int,ok := ParseInt(pval)
+	result_int, ok := ParseInt(pval)
 	if !ok {
 		result_float, ok := ParseFloat(pval)
 		if !ok {
@@ -1020,10 +1015,10 @@ func getInitValue(pval []byte) interface{} {
 		}
 		fmt.Println("float")
 		return result_float
-	}else{
+	} else {
 		s := string(pval)
-		a := strings.Split(s,"0")
-		if strings.EqualFold(a[0],""){
+		a := strings.Split(s, "0")
+		if strings.EqualFold(a[0], "") {
 			return string(pval)
 		}
 		fmt.Println("int")
@@ -1031,18 +1026,18 @@ func getInitValue(pval []byte) interface{} {
 	}
 }
 
-func ParseInt(value []byte) (int64,bool) {
+func ParseInt(value []byte) (int64, bool) {
 	result, err := strconv.ParseInt(string(value), 10, 64)
 	if err != nil {
-		return 0,false
+		return 0, false
 	}
-	return result,true
+	return result, true
 }
 
-func ParseFloat(value []byte) (float64,bool) {
+func ParseFloat(value []byte) (float64, bool) {
 	result, err := strconv.ParseFloat(string(value), 64)
 	if err != nil {
-		return 0,false
+		return 0, false
 	}
-	return result,true
+	return result, true
 }
