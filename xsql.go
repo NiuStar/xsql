@@ -26,7 +26,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"
 	"time"
-	"nqc.cn/log"
+	"github.com/NiuStar/log"
 	"sync"
 	"strings"
 )
